@@ -381,6 +381,9 @@ def stress_disk(args):
     if "/dev" not in args.device and args.device != "":
         args.device = "/dev/" + args.device
 
+    # Track if /root/tmp existed before we started
+    root_tmp_existed = os.path.exists("/root/tmp")
+
     test_disk = Disk(args.device)
     if not test_disk.is_block_device():
         print("** {} is not a block device! Aborting!".format(args.device))
@@ -408,8 +411,21 @@ def stress_disk(args):
                 )
                 retval = retval | test_object.run()
                 print(test_object.results)
-        if test_disk.test_dir != "/tmp" and not args.simulate:
-            shutil.rmtree(test_disk.test_dir, ignore_errors=True)
+        # Clean up test directories
+        if not args.simulate:
+            # Remove test-specific directory (e.g., /root/tmp/stress-ng-... or /mnt/.../tmp/stress-ng-...)
+            if test_disk.test_dir.startswith("/root/tmp/") or (
+                test_disk.test_dir != "/root/tmp" and "/tmp/stress-ng-" in test_disk.test_dir
+            ):
+                shutil.rmtree(test_disk.test_dir, ignore_errors=True)
+            # Remove /root/tmp if we created it
+            if not root_tmp_existed and os.path.exists("/root/tmp"):
+                # Only remove if it's empty or only contains our test artifacts
+                try:
+                    os.rmdir("/root/tmp")
+                except OSError:
+                    # Directory not empty, which is fine - don't force remove
+                    pass
     else:
         print("** Unable to find a suitable partition! Aborting!")
         retval = 1

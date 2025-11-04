@@ -82,7 +82,7 @@ class Disk:
         self.device = device
         self.all_parts = []
         self.unsupported_fs = None
-        self.test_dir = "/tmp"
+        self.test_dir = "/root/tmp"
         self.mount_point = ""
         lvm_detected = False
         # Find final element of device name; for instance "sda" for "/dev/sda"
@@ -209,6 +209,8 @@ class Disk:
                 )
             )
             logging.info("(if not already mounted).")
+            # Ensure /root/tmp exists for potential test use
+            os.makedirs("/root/tmp", exist_ok=True)
         else:
             if not self.mount_point:
                 self.mount_point = "/mnt/{}".format(target_part["name"])
@@ -229,6 +231,7 @@ class Disk:
                         full_device, self.mount_point
                     )
                 )
+            # Create test directory under mounted filesystem
             self.test_dir = "{}/tmp/stress-ng-{}".format(
                 self.mount_point, uuid.uuid1()
             )
