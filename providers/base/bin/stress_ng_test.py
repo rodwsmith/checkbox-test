@@ -413,14 +413,16 @@ def stress_disk(args):
                 print(test_object.results)
         # Clean up test directories
         if not args.simulate:
-            # Remove test-specific directory (e.g., /root/tmp/stress-ng-... or /mnt/.../tmp/stress-ng-...)
+            # Remove test-specific directory
+            # (e.g., /root/tmp/stress-ng-... or /mnt/.../tmp/stress-ng-...)
             if test_disk.test_dir.startswith("/root/tmp/") or (
-                test_disk.test_dir != "/root/tmp" and "/tmp/stress-ng-" in test_disk.test_dir
+                test_disk.test_dir != "/root/tmp"
+                and "/tmp/stress-ng-" in test_disk.test_dir
             ):
                 shutil.rmtree(test_disk.test_dir, ignore_errors=True)
             # Remove /root/tmp if we created it
             if not root_tmp_existed and os.path.exists("/root/tmp"):
-                # Only remove if it's empty or only contains our test artifacts
+                # Only remove if it's empty or only contains our artifacts
                 try:
                     os.rmdir("/root/tmp")
                 except OSError:
